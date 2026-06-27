@@ -37,7 +37,7 @@ const fmtDur = (s: number | null) => {
 };
 
 /* ── Password Gate ── */
-const ADMIN_PASS = import.meta.env.VITE_ADMIN_PASSWORD ?? "hooda2024";
+const ADMIN_PASS = "hooda_admin_2024";
 
 function PasswordGate({ onUnlock }: { onUnlock: () => void }) {
   const [val, setVal] = useState("");
