@@ -236,7 +236,12 @@ function VideoCard({ v, onClick }: { v: any; onClick: () => void }) {
 
 /* ══ ADMIN PAGE ══ */
 function AdminPage() {
-  const [unlocked, setUnlocked] = useState(() => sessionStorage.getItem("hooda_admin") === "1");
+  const [unlocked, setUnlocked] = useState(false);
+  useEffect(() => {
+    if (typeof window !== "undefined" && sessionStorage.getItem("hooda_admin") === "1") {
+      setUnlocked(true);
+    }
+  }, []);
   const [videos, setVideos] = useState<any[]>([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(false);
