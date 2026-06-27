@@ -97,7 +97,7 @@ function VideoModal({ v, onClose, onDelete }: { v: any; onClose: () => void; onD
   async function handleDelete() {
     if (!confirming) { setConfirming(true); return; }
     setDeleting(true);
-    await hooda.from("videos").delete().eq("id", v.id);
+    await hooda.deleteVideo(v.id);
     onDelete(v.id);
     onClose();
   }
@@ -252,32 +252,17 @@ function AdminPage() {
   }
 
   const loadStats = useCallback(async () => {
-    const [vidRes, userRes, chRes] = await Promise.all([
-      hooda.from("videos").select("views_count", { count: "exact" }).eq("status","published"),
-      hooda.from("profiles").select("id", { count: "exact", head: true }),
-      hooda.from("channels").select("id", { count: "exact", head: true }),
-    ]);
-    const totalViews = (vidRes.data ?? []).reduce((s: number, v: any) => s + (v.views_count ?? 0), 0);
-    setStats({
-      videos: vidRes.count ?? 0,
-      users: userRes.count ?? 0,
-      views: totalViews,
-      channels: chRes.count ?? 0,
-    });
+    const data = await hooda.getStats();
+    setStats({ videos: data.videos, users: data.users, views: data.views, channels: data.channels });
   }, []);
 
   const loadVideos = useCallback(async () => {
     setLoading(true);
-    let q = hooda.from("videos")
-      .select("id,title,thumbnail_url,duration_seconds,views_count,likes_count,status,visibility,published_at,created_at,cf_embed_url,description,channels(name,handle)", { count: "exact" })
-      .order("created_at", { ascending: false })
-      .range(page * PER_PAGE, (page + 1) * PER_PAGE - 1);
-
-    if (search.trim()) q = q.ilike("title", `%${search.trim()}%`);
-
-    const { data, count } = await q;
-    setVideos(data ?? []);
-    setTotal(count ?? 0);
+    try {
+      const res = await hooda.getVideos(page, PER_PAGE, search);
+      setVideos(res.data ?? []);
+      setTotal(res.total ?? 0);
+    } catch (e) { console.error(e); }
     setLoading(false);
   }, [page, search]);
 
